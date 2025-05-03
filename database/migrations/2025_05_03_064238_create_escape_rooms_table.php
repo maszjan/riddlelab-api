@@ -16,6 +16,7 @@ return new class extends Migration
             $table->text('description');
             $table->string('thumbnail_url')->nullable();
             $table->string('soundtrack_url')->nullable();
+            $table->boolean('is_public')->default(false);
             $table->timestamps();
         });
     }
