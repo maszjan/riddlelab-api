@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AssetController;
 use App\Http\Controllers\Api\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -20,5 +21,15 @@ Route::prefix('v1')->group(function () {
           });
        });
     });
+
+    Route::prefix('asset')->group(function () {
+        Route::controller(AssetController::class)->group(function () {
+            Route::middleware('auth:sanctum')->group(function () {
+                Route::get('/my', 'getMyAssets');
+                Route::get('/{id}', 'getAsset');
+            });
+        });
+    });
+
 
 });
