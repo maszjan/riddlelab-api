@@ -17,7 +17,7 @@ class StoreAssetRequest extends FormRequest
             'name' => 'required|string|max:255',
             'type' => 'required|string|in:door,floor,prop,riddle',
             'image' => 'required|image|mimes:jpg,png,jpeg|max:2048|dimensions:width=64,height=64',
-            'has_collider' => 'boolean',
+            'has_collider' => 'sometimes|boolean',
         ];
     }
 

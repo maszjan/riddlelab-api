@@ -15,7 +15,7 @@ class AssetSeeder extends Seeder
                 'owner_id' => null,
                 'name' => "Door Texture {$i}",
                 'type' => AssetType::Door->value,
-                'image_url' => "storage/app/public/textures/door/door{$i}.png",
+                'image_url' => "textures/door/door{$i}.png",
                 'has_collider' => true,
                 'is_public' => true,
             ]);
@@ -26,7 +26,7 @@ class AssetSeeder extends Seeder
                 'owner_id' => null,
                 'name' => "Floor Texture {$i}",
                 'type' => AssetType::Floor->value,
-                'image_url' => "storage/app/public/textures/floor/floor{$i}.png",
+                'image_url' => "textures/floor/floor{$i}.png",
                 'has_collider' => false,
                 'is_public' => true,
             ]);
@@ -37,7 +37,7 @@ class AssetSeeder extends Seeder
                 'owner_id' => null,
                 'name' => "Prop {$i}",
                 'type' => AssetType::Prop->value,
-                'image_url' => "storage/app/public/textures/props/prop-{$i}.png",
+                'image_url' => "textures/props/prop-{$i}.png",
                 'has_collider' => true,
                 'is_public' => true,
             ]);
@@ -48,7 +48,7 @@ class AssetSeeder extends Seeder
                 'owner_id' => null,
                 'name' => "Riddle {$i}",
                 'type' => AssetType::Riddle->value,
-                'image_url' => "storage/app/public/textures/riddles/riddle-{$i}.png",
+                'image_url' => "textures/riddles/riddle-{$i}.png",
                 'has_collider' => true,
                 'is_public' => true,
             ]);

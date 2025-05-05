@@ -34,7 +34,15 @@ class AssetController extends Controller
     {
         $asset = Asset::findOrFail($id);
 
-        $publicPath = str_replace('storage/app/public/', 'storage/', $asset->image_url);
+        if (!$asset->is_public && $asset->owner_id !== auth()->id()) {
+            return response()->json(['message' => 'Unauthorized access'], 403);
+        }
+
+        if (!Storage::disk('public')->exists($asset->image_url)) {
+            return response()->json(['message' => 'Image not found'], 404);
+        }
+
+        $publicPath = 'storage/' . $asset->image_url;
 
         return response()->json([
             'url' => asset($publicPath),
@@ -42,29 +50,34 @@ class AssetController extends Controller
         ]);
     }
 
-    public function destroyAsset(int $id)
-    {
-
-    }
 
     public function createAsset(StoreAssetRequest $request): JsonResponse
     {
         $user = auth()->user();
         $file = $request->file('image');
+        $validatedData = $request->validated();
 
-        $userStorageUsed = $this->getUserStorageUsed($user->id);
-        $userStorageLimit = $this->getUserStorageLimit($user->id);
-        $fileSize = $file->getSize();
+        $targetPath = 'users/' . $user->name . '/textures/' . $validatedData['type'];
 
-        if ($userStorageUsed + $fileSize > $userStorageLimit) {
+        if (!Storage::disk('public')->exists($targetPath)) {
+            Storage::disk('public')->makeDirectory($targetPath, true);
+        }
+
+        $assetCount = Asset::where('owner_id', $user->id)->count();
+        $assetLimit = $user->getAssetLimit();
+
+
+        if ($assetLimit !== -1 && $assetCount >= $assetLimit) {
             return response()->json([
-                'message' => 'Przekroczono limit przestrzeni dyskowej'
+                'message' => 'Osiągnięto limit liczby zasobów'
             ], 403);
         }
 
-        $validatedData = $request->validated();
-
-        $path = $file->store('textures/' . $validatedData['type'], 'public');
+        $path = $file->storeAs(
+            $targetPath,
+            $file->getClientOriginalName(),
+            'public'
+        );
 
         $asset = Asset::create([
             'name' => $validatedData['name'],
@@ -72,7 +85,6 @@ class AssetController extends Controller
             'image_url' => $path,
             'has_collider' => $validatedData['has_collider'] ?? false,
             'owner_id' => $user->id,
-            'is_public' => $validatedData['is_public'] ?? false,
         ]);
 
         return response()->json([
@@ -80,6 +92,22 @@ class AssetController extends Controller
             'asset' => $asset
         ], 201);
     }
+
+    public function destroyAsset(int $id)
+    {
+        $asset = Asset::findOrFail($id);
+
+        if (!$asset->is_public && $asset->owner_id !== auth()->id()) {
+            return response()->json(['message' => 'Unauthorized access'], 403);
+        }
+
+        // TODO  after handling some saving rooms/e-rooms etc. bring protecting before removing assets used in saved maps
+
+        $asset->delete();
+
+        return response()->json(['success' => 'Asset został usunięty pomyślnie'], 204);
+    }
+
 
 
 }
