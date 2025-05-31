@@ -13,13 +13,14 @@ return new class extends Migration
             $table->foreignId('escape_room_id')->constrained('escape_rooms');
             $table->json('grid_data');
             $table->json('walls_data');
-            $table->string('floor_color');
             $table->string('wall_color');
             $table->float('wall_thickness');
             $table->foreignId('floor_texture_id')->nullable()->constrained('assets');
             $table->integer('starting_point_row');
             $table->integer('starting_point_col');
             $table->boolean('floor_accepted')->default(false);
+            $table->foreignId('door_asset_id')->nullable()->constrained('assets');
+            $table->json('door_position')->nullable();
             $table->timestamps();
         });
     }

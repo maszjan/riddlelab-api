@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AssetController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\EscapeRoomController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -41,5 +42,21 @@ Route::prefix('v1')->group(function () {
             });
         });
     });
+
+    Route::prefix('escape-room')->group(function () {
+        Route::controller(EscapeRoomController::class)->group(function () {
+            Route::get('/', 'index');
+            Route::get('/{id}', 'show');
+            Route::get('/{id}/leaderboard', 'getLeaderboard');
+
+            Route::middleware('auth:sanctum')->group(function () {
+                Route::post('/', 'store');
+                Route::put('/{id}', 'update');
+                Route::delete('/{id}', 'destroy');
+                Route::get('/my/rooms', 'getUserEscapeRooms');
+            });
+        });
+    });
+
 
 });
