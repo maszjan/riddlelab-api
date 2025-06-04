@@ -24,9 +24,10 @@ yarn-error.log
 /.vscode
 /.zed
 
-# Ensure public storage is ignored but not textures
+# Laravel storage (but not our texture files)
 /public/storage
-
-# Explicitly include textures directory and all subdirectories
+# Explicitly include both texture locations
 !public/textures/
 !public/textures/**
+!storage/app/public/textures/
+!storage/app/public/textures/**
