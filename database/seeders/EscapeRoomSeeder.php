@@ -222,246 +222,278 @@ class EscapeRoomSeeder extends Seeder
         }
     }
 
-      private function populateRoom($room, $assets, $riddles, $openCells, $doorInfo): void
-    {
-        $usedPositions = [];
+private function populateRoom($room, $assets, $riddles, $openCells, $doorInfo): void
+{
+    $usedPositions = [];
 
-        // Add starting point to used positions
-        $startingPosition = "{$doorInfo['starting_point']['row']},{$doorInfo['starting_point']['col']}";
-        $usedPositions[] = $startingPosition;
+    // Add starting point to used positions
+    $startingPosition = "{$doorInfo['starting_point']['row']},{$doorInfo['starting_point']['col']}";
+    $usedPositions[] = $startingPosition;
 
-        // Get different asset types
-        $props = $assets->where('type', AssetType::Prop);
+    // Get different asset types
+    $props = $assets->where('type', AssetType::Prop);
+    $riddleAssets = $assets->where('type', AssetType::Riddle); // ADD THIS LINE
 
-        // 1. Add the door if it was selected
-        if ($doorInfo['door_asset_id'] && $doorInfo['door_cell']) {
-            $row = $doorInfo['door_cell'][0];
-            $col = $doorInfo['door_cell'][1];
-            $position = "{$row},{$col}";
-            $usedPositions[] = $position;
+    // 1. Add the door if it was selected
+    if ($doorInfo['door_asset_id'] && $doorInfo['door_cell']) {
+        $row = $doorInfo['door_cell'][0];
+        $col = $doorInfo['door_cell'][1];
+        $position = "{$row},{$col}";
+        $usedPositions[] = $position;
 
-            RoomAsset::create([
-                'room_id' => $room->id,
-                'asset_id' => $doorInfo['door_asset_id'],
-                'position_row' => $row,
-                'position_col' => $col,
-                'rotation' => collect([0, 90, 180, 270])->random(),
-            ]);
-        }
-
-        // 2. Add props (adjusted for available props)
-        if ($props->isNotEmpty() && !empty($openCells)) {
-            $availableCells = array_filter($openCells, function($cell) use ($usedPositions) {
-                $position = "{$cell[0]},{$cell[1]}";
-                return !in_array($position, $usedPositions);
-            });
-
-            if (!empty($availableCells)) {
-                // Calculate realistic prop count based on available props
-                $availablePropsCount = $props->count();
-                $maxProps = min($availablePropsCount, 15, count($availableCells));
-                
-                // If we have very few props, use them multiple times
-                if ($availablePropsCount < 8) {
-                    $propCount = min($maxProps, count($availableCells));
-                } else {
-                    $propCount = rand(min(8, $availablePropsCount), $maxProps);
-                }
-
-                // Select props (with repetition if needed)
-                $selectedProps = collect();
-                for ($i = 0; $i < $propCount; $i++) {
-                    $selectedProps->push($props->random());
-                }
-
-                foreach ($selectedProps as $prop) {
-                    $availableCells = array_filter($openCells, function($cell) use ($usedPositions) {
-                        $position = "{$cell[0]},{$cell[1]}";
-                        return !in_array($position, $usedPositions);
-                    });
-
-                    if (!empty($availableCells)) {
-                        $cell = $availableCells[array_rand($availableCells)];
-                        $row = $cell[0];
-                        $col = $cell[1];
-                        $position = "{$row},{$col}";
-
-                        $usedPositions[] = $position;
-
-                        RoomAsset::create([
-                            'room_id' => $room->id,
-                            'asset_id' => $prop->id,
-                            'position_row' => $row,
-                            'position_col' => $col,
-                            'rotation' => collect([0, 90, 180, 270])->random(),
-                        ]);
-                    }
-                }
-            }
-        }
-
-        // 3. Add MAX 3 riddles (well distributed across the room)
-        if ($riddles->isNotEmpty() && !empty($openCells)) {
-            $availableCells = array_filter($openCells, function($cell) use ($usedPositions) {
-                $position = "{$cell[0]},{$cell[1]}";
-                return !in_array($position, $usedPositions);
-            });
-
-            if (!empty($availableCells)) {
-                $availableRiddlesCount = $riddles->count();
-                $maxRiddles = min($availableRiddlesCount, 3, count($availableCells));
-                $riddleCount = rand(1, $maxRiddles);
-                
-                // Select riddles (avoid error if not enough riddles)
-                if ($riddleCount > $availableRiddlesCount) {
-                    $riddleCount = $availableRiddlesCount;
-                }
-                
-                $selectedRiddles = $riddles->random($riddleCount);
-
-                foreach ($selectedRiddles as $riddle) {
-                    $availableCells = array_filter($openCells, function($cell) use ($usedPositions) {
-                        $position = "{$cell[0]},{$cell[1]}";
-                        return !in_array($position, $usedPositions);
-                    });
-
-                    if (!empty($availableCells)) {
-                        $cell = $availableCells[array_rand($availableCells)];
-                        $row = $cell[0];
-                        $col = $cell[1];
-                        $position = "{$row},{$col}";
-
-                        $usedPositions[] = $position;
-
-                        RoomRiddle::create([
-                            'room_id' => $room->id,
-                            'riddle_id' => $riddle->id,
-                            'position_row' => $row,
-                            'position_col' => $col,
-                        ]);
-                    }
-                }
-            }
-        }
+        RoomAsset::create([
+            'room_id' => $room->id,
+            'asset_id' => $doorInfo['door_asset_id'],
+            'position_row' => $row,
+            'position_col' => $col,
+            'rotation' => collect([0, 90, 180, 270])->random(),
+        ]);
     }
 
-    private function createTestRoom($user, $assets, $riddles): void
-    {
-        $testEscapeRoom = EscapeRoom::create([
-            'name' => 'test1',
-            'description' => 'test1testet',
-            'thumbnail_url' => '/storage/escape-rooms/thumbnails/rl-app-2.png',
-            'soundtrack_url' => '/storage/escape-rooms/soundtracks/2c23a7e1-23c1-41ca-9101-278214e259f0.mp3',
-            'is_public' => false,
-            'user_id' => $user->id,
-        ]);
+    // 2. Add props (adjusted for available props)
+    if ($props->isNotEmpty() && !empty($openCells)) {
+        $availableCells = array_filter($openCells, function($cell) use ($usedPositions) {
+            $position = "{$cell[0]},{$cell[1]}";
+            return !in_array($position, $usedPositions);
+        });
 
-        $roomData = $this->generateRoomLayout('#888888');
-        $doors = $assets->where('type', AssetType::Door);
-        $doorInfo = $this->selectDoorAndStartingPoint($roomData['open_cells'], $doors);
-
-        $testRoom = Room::create([
-            'escape_room_id' => $testEscapeRoom->id,
-            'grid_data' => $roomData['grid_data'],
-            'walls_data' => $roomData['walls_data'],
-            'wall_color' => '#888888',
-            'wall_thickness' => 20,
-            'floor_texture_id' => 8,
-            'starting_point_row' => $doorInfo['starting_point']['row'],
-            'starting_point_col' => $doorInfo['starting_point']['col'],
-            'floor_accepted' => true,
-            'door_asset_id' => $doorInfo['door_asset_id'],
-            'door_position' => $doorInfo['door_position'],
-        ]);
-
-        // Add door if available
-        if ($doorInfo['door_asset_id'] && $doorInfo['door_cell']) {
-            RoomAsset::create([
-                'room_id' => $testRoom->id,
-                'asset_id' => $doorInfo['door_asset_id'],
-                'position_row' => $doorInfo['door_cell'][0],
-                'position_col' => $doorInfo['door_cell'][1],
-                'rotation' => 0,
-            ]);
-        }
-
-        // Add some props with more space
-        $props = $assets->where('type', AssetType::Prop);
-        if ($props->isNotEmpty()) {
-            $availableCells = array_filter($roomData['open_cells'], function($cell) use ($doorInfo) {
-                $startPos = "{$doorInfo['starting_point']['row']},{$doorInfo['starting_point']['col']}";
-                $doorPos = $doorInfo['door_cell'] ? "{$doorInfo['door_cell'][0]},{$doorInfo['door_cell'][1]}" : null;
-                $cellPos = "{$cell[0]},{$cell[1]}";
-                return $cellPos !== $startPos && $cellPos !== $doorPos;
-            });
-
-            // Add multiple props to fill the space (fixed logic)
+        if (!empty($availableCells)) {
+            // Calculate realistic prop count based on available props
             $availablePropsCount = $props->count();
-            $propCount = min(5, $availablePropsCount, count($availableCells));
+            $maxProps = min($availablePropsCount, 15, count($availableCells));
             
-            $usedTestPositions = [];
+            // If we have very few props, use them multiple times
+            if ($availablePropsCount < 8) {
+                $propCount = min($maxProps, count($availableCells));
+            } else {
+                $propCount = rand(min(8, $availablePropsCount), $maxProps);
+            }
 
+            // Select props (with repetition if needed)
+            $selectedProps = collect();
             for ($i = 0; $i < $propCount; $i++) {
-                $prop = $props->random(); // Get random prop (can repeat)
-                
-                $availableCells = array_filter($roomData['open_cells'], function($cell) use ($doorInfo, $usedTestPositions) {
-                    $startPos = "{$doorInfo['starting_point']['row']},{$doorInfo['starting_point']['col']}";
-                    $doorPos = $doorInfo['door_cell'] ? "{$doorInfo['door_cell'][0]},{$doorInfo['door_cell'][1]}" : null;
-                    $cellPos = "{$cell[0]},{$cell[1]}";
-                    return $cellPos !== $startPos && $cellPos !== $doorPos && !in_array($cellPos, $usedTestPositions);
+                $selectedProps->push($props->random());
+            }
+
+            foreach ($selectedProps as $prop) {
+                $availableCells = array_filter($openCells, function($cell) use ($usedPositions) {
+                    $position = "{$cell[0]},{$cell[1]}";
+                    return !in_array($position, $usedPositions);
                 });
 
                 if (!empty($availableCells)) {
                     $cell = $availableCells[array_rand($availableCells)];
-                    $usedTestPositions[] = "{$cell[0]},{$cell[1]}";
-                    
+                    $row = $cell[0];
+                    $col = $cell[1];
+                    $position = "{$row},{$col}";
+
+                    $usedPositions[] = $position;
+
                     RoomAsset::create([
-                        'room_id' => $testRoom->id,
+                        'room_id' => $room->id,
                         'asset_id' => $prop->id,
-                        'position_row' => $cell[0],
-                        'position_col' => $cell[1],
+                        'position_row' => $row,
+                        'position_col' => $col,
                         'rotation' => collect([0, 90, 180, 270])->random(),
                     ]);
                 }
             }
         }
+    }
 
-        // Add riddles (fixed logic)
-        if ($riddles->isNotEmpty()) {
-            $availableCells = array_filter($roomData['open_cells'], function($cell) use ($doorInfo) {
-                $startPos = "{$doorInfo['starting_point']['row']},{$doorInfo['starting_point']['col']}";
-                $doorPos = $doorInfo['door_cell'] ? "{$doorInfo['door_cell'][0]},{$doorInfo['door_cell'][1]}" : null;
-                $cellPos = "{$cell[0]},{$cell[1]}";
-                return $cellPos !== $startPos && $cellPos !== $doorPos;
-            });
+    // 3. Add MAX 3 riddles (well distributed across the room)
+    if ($riddles->isNotEmpty() && !empty($openCells)) {
+        $availableCells = array_filter($openCells, function($cell) use ($usedPositions) {
+            $position = "{$cell[0]},{$cell[1]}";
+            return !in_array($position, $usedPositions);
+        });
 
-            // Add 2-3 riddles (safe logic)
+        if (!empty($availableCells)) {
             $availableRiddlesCount = $riddles->count();
-            $riddleCount = min(3, $availableRiddlesCount, count($availableCells));
-            $usedRiddlePositions = [];
+            $maxRiddles = min($availableRiddlesCount, 3, count($availableCells));
+            $riddleCount = rand(1, $maxRiddles);
+            
+            // Select riddles (avoid error if not enough riddles)
+            if ($riddleCount > $availableRiddlesCount) {
+                $riddleCount = $availableRiddlesCount;
+            }
+            
+            $selectedRiddles = $riddles->random($riddleCount);
 
-            for ($i = 0; $i < $riddleCount; $i++) {
-                $riddle = $riddles->random(); // Get random riddle (can repeat)
-                
-                $availableCells = array_filter($roomData['open_cells'], function($cell) use ($doorInfo, $usedRiddlePositions) {
-                    $startPos = "{$doorInfo['starting_point']['row']},{$doorInfo['starting_point']['col']}";
-                    $doorPos = $doorInfo['door_cell'] ? "{$doorInfo['door_cell'][0]},{$doorInfo['door_cell'][1]}" : null;
-                    $cellPos = "{$cell[0]},{$cell[1]}";
-                    return $cellPos !== $startPos && $cellPos !== $doorPos && !in_array($cellPos, $usedRiddlePositions);
+            foreach ($selectedRiddles as $riddle) {
+                $availableCells = array_filter($openCells, function($cell) use ($usedPositions) {
+                    $position = "{$cell[0]},{$cell[1]}";
+                    return !in_array($position, $usedPositions);
                 });
 
                 if (!empty($availableCells)) {
                     $cell = $availableCells[array_rand($availableCells)];
-                    $usedRiddlePositions[] = "{$cell[0]},{$cell[1]}";
-                    
+                    $row = $cell[0];
+                    $col = $cell[1];
+                    $position = "{$row},{$col}";
+
+                    $usedPositions[] = $position;
+
+                    // Create the RoomRiddle record
                     RoomRiddle::create([
-                        'room_id' => $testRoom->id,
+                        'room_id' => $room->id,
                         'riddle_id' => $riddle->id,
+                        'position_row' => $row,
+                        'position_col' => $col,
+                    ]);
+
+                    // Create a RoomAsset record at the same position using riddle-specific assets
+                    if ($riddleAssets->isNotEmpty()) {
+                        $selectedRiddleAsset = $riddleAssets->random();
+                        
+                        RoomAsset::create([
+                            'room_id' => $room->id,
+                            'asset_id' => $selectedRiddleAsset->id,
+                            'position_row' => $row,
+                            'position_col' => $col,
+                            'rotation' => 0,
+                        ]);
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+private function createTestRoom($user, $assets, $riddles): void
+{
+    $testEscapeRoom = EscapeRoom::create([
+        'name' => 'test1',
+        'description' => 'test1testet',
+        'thumbnail_url' => '/storage/escape-rooms/thumbnails/rl-app-2.png',
+        'soundtrack_url' => '/storage/escape-rooms/soundtracks/2c23a7e1-23c1-41ca-9101-278214e259f0.mp3',
+        'is_public' => false,
+        'user_id' => $user->id,
+    ]);
+
+    $roomData = $this->generateRoomLayout('#888888');
+    $doors = $assets->where('type', AssetType::Door);
+    $doorInfo = $this->selectDoorAndStartingPoint($roomData['open_cells'], $doors);
+
+    $testRoom = Room::create([
+        'escape_room_id' => $testEscapeRoom->id,
+        'grid_data' => $roomData['grid_data'],
+        'walls_data' => $roomData['walls_data'],
+        'wall_color' => '#888888',
+        'wall_thickness' => 20,
+        'floor_texture_id' => 8,
+        'starting_point_row' => $doorInfo['starting_point']['row'],
+        'starting_point_col' => $doorInfo['starting_point']['col'],
+        'floor_accepted' => true,
+        'door_asset_id' => $doorInfo['door_asset_id'],
+        'door_position' => $doorInfo['door_position'],
+    ]);
+
+    $props = $assets->where('type', AssetType::Prop);
+    $riddleAssets = $assets->where('type', AssetType::Riddle);
+
+    // Add door if available
+    if ($doorInfo['door_asset_id'] && $doorInfo['door_cell']) {
+        RoomAsset::create([
+            'room_id' => $testRoom->id,
+            'asset_id' => $doorInfo['door_asset_id'],
+            'position_row' => $doorInfo['door_cell'][0],
+            'position_col' => $doorInfo['door_cell'][1],
+            'rotation' => 0,
+        ]);
+    }
+
+    // Add some props with more space
+    if ($props->isNotEmpty()) {
+        $availableCells = array_filter($roomData['open_cells'], function($cell) use ($doorInfo) {
+            $startPos = "{$doorInfo['starting_point']['row']},{$doorInfo['starting_point']['col']}";
+            $doorPos = $doorInfo['door_cell'] ? "{$doorInfo['door_cell'][0]},{$doorInfo['door_cell'][1]}" : null;
+            $cellPos = "{$cell[0]},{$cell[1]}";
+            return $cellPos !== $startPos && $cellPos !== $doorPos;
+        });
+
+        // Add multiple props to fill the space (fixed logic)
+        $availablePropsCount = $props->count();
+        $propCount = min(5, $availablePropsCount, count($availableCells));
+        
+        $usedTestPositions = [];
+
+        for ($i = 0; $i < $propCount; $i++) {
+            $prop = $props->random(); // Get random prop (can repeat)
+            
+            $availableCells = array_filter($roomData['open_cells'], function($cell) use ($doorInfo, $usedTestPositions) {
+                $startPos = "{$doorInfo['starting_point']['row']},{$doorInfo['starting_point']['col']}";
+                $doorPos = $doorInfo['door_cell'] ? "{$doorInfo['door_cell'][0]},{$doorInfo['door_cell'][1]}" : null;
+                $cellPos = "{$cell[0]},{$cell[1]}";
+                return $cellPos !== $startPos && $cellPos !== $doorPos && !in_array($cellPos, $usedTestPositions);
+            });
+
+            if (!empty($availableCells)) {
+                $cell = $availableCells[array_rand($availableCells)];
+                $usedTestPositions[] = "{$cell[0]},{$cell[1]}";
+                
+                RoomAsset::create([
+                    'room_id' => $testRoom->id,
+                    'asset_id' => $prop->id,
+                    'position_row' => $cell[0],
+                    'position_col' => $cell[1],
+                    'rotation' => collect([0, 90, 180, 270])->random(),
+                ]);
+            }
+        }
+    }
+
+    // Add riddles with riddle-specific assets
+    if ($riddles->isNotEmpty()) {
+        $availableCells = array_filter($roomData['open_cells'], function($cell) use ($doorInfo) {
+            $startPos = "{$doorInfo['starting_point']['row']},{$doorInfo['starting_point']['col']}";
+            $doorPos = $doorInfo['door_cell'] ? "{$doorInfo['door_cell'][0]},{$doorInfo['door_cell'][1]}" : null;
+            $cellPos = "{$cell[0]},{$cell[1]}";
+            return $cellPos !== $startPos && $cellPos !== $doorPos;
+        });
+
+        // Add 2-3 riddles (safe logic)
+        $availableRiddlesCount = $riddles->count();
+        $riddleCount = min(3, $availableRiddlesCount, count($availableCells));
+        $usedRiddlePositions = [];
+
+        for ($i = 0; $i < $riddleCount; $i++) {
+            $riddle = $riddles->random(); // Get random riddle (can repeat)
+            
+            $availableCells = array_filter($roomData['open_cells'], function($cell) use ($doorInfo, $usedRiddlePositions) {
+                $startPos = "{$doorInfo['starting_point']['row']},{$doorInfo['starting_point']['col']}";
+                $doorPos = $doorInfo['door_cell'] ? "{$doorInfo['door_cell'][0]},{$doorInfo['door_cell'][1]}" : null;
+                $cellPos = "{$cell[0]},{$cell[1]}";
+                return $cellPos !== $startPos && $cellPos !== $doorPos && !in_array($cellPos, $usedRiddlePositions);
+            });
+
+            if (!empty($availableCells)) {
+                $cell = $availableCells[array_rand($availableCells)];
+                $usedRiddlePositions[] = "{$cell[0]},{$cell[1]}";
+                
+                // Create the RoomRiddle record
+                RoomRiddle::create([
+                    'room_id' => $testRoom->id,
+                    'riddle_id' => $riddle->id,
+                    'position_row' => $cell[0],
+                    'position_col' => $cell[1],
+                ]);
+
+                // Create a RoomAsset record at the same position using riddle-specific assets
+                if ($riddleAssets->isNotEmpty()) {
+                    $selectedRiddleAsset = $riddleAssets->random();
+                    
+                    RoomAsset::create([
+                        'room_id' => $testRoom->id,
+                        'asset_id' => $selectedRiddleAsset->id,
                         'position_row' => $cell[0],
                         'position_col' => $cell[1],
+                        'rotation' => 0,
                     ]);
                 }
             }
         }
     }
+}
 }
