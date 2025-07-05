@@ -1,5 +1,6 @@
 <?php
 
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -22,11 +23,14 @@ class Room extends Model
         'starting_point_row',
         'starting_point_col',
         'floor_accepted',
+        'door_asset_id',      
+        'door_position',     
     ];
 
     protected $casts = [
         'grid_data' => 'array',
         'walls_data' => 'array',
+        'door_position' => 'array',  
         'wall_thickness' => 'float',
         'floor_accepted' => 'boolean',
     ];
@@ -39,6 +43,11 @@ class Room extends Model
     public function floorTexture(): BelongsTo
     {
         return $this->belongsTo(Asset::class, 'floor_texture_id');
+    }
+
+    public function doorAsset(): BelongsTo  
+    {
+        return $this->belongsTo(Asset::class, 'door_asset_id');
     }
 
     public function roomAssets(): HasMany

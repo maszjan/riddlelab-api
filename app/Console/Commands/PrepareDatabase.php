@@ -1,5 +1,6 @@
 <?php
 
+
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
@@ -18,7 +19,7 @@ class PrepareDatabase extends Command
      *
      * @var string
      */
-    protected $description = 'Command for running fresh app migrations and seeders with users and assets';
+    protected $description = 'Command for running fresh app migrations and seeders with users, assets, riddles and escape rooms';
 
     /**
      * Execute the console command.
@@ -32,13 +33,8 @@ class PrepareDatabase extends Command
             '--force' => true
         ]);
 
-        $this->info('Dodawanie domyślnych użytkowników i zasobów...');
+        $this->info('Dodawanie domyślnych danych...');
         $this->call('db:seed', [
-            '--class' => 'Database\Seeders\UserSeeder',
-            '--force' => true
-        ]);
-        $this->call('db:seed', [
-            '--class' => 'Database\Seeders\AssetSeeder',
             '--force' => true
         ]);
 
@@ -55,6 +51,11 @@ class PrepareDatabase extends Command
                 ['User', 'tester@riddlelab.app', 'Password123@']
             ]
         );
-    }
 
+        $this->info('Utworzono również:');
+        $this->line('- Zbiór zasobów (assets) do budowania pokoi');
+        $this->line('- Zagadki (riddles) stworzone przez użytkowników');
+        $this->line('- Pokoje escape (escape rooms) z umieszczonymi zasobami i zagadkami');
+        $this->line('- 5 publicznych pokoi do podglądu');
+    }
 }
