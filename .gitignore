@@ -24,10 +24,12 @@ yarn-error.log
 /.vscode
 /.zed
 
-# Laravel storage (but not our texture files)
+# Laravel storage - keep our asset files
+/storage/app/public/*
+!/storage/app/public/textures/
+!/storage/app/public/textures/**
+!/storage/app/public/escape-rooms/
+!/storage/app/public/escape-rooms/**
+
+# Public storage symlink (this gets recreated by storage:link)
 /public/storage
-# Explicitly include both texture locations
-!public/textures/
-!public/textures/**
-!storage/app/public/textures/
-!storage/app/public/textures/**

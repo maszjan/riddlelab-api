@@ -9,6 +9,7 @@ use App\Services\EscapeRoomService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class EscapeRoomController extends Controller
 {
@@ -54,23 +55,60 @@ class EscapeRoomController extends Controller
 
     public function update(Request $request, $id)
     {
-        $escapeRoom = EscapeRoom::where('user_id', Auth::id())->findOrFail($id);
+        Log::info('=== ESCAPE ROOM UPDATE REQUEST ===');
+        Log::info('Escape Room ID: ' . $id);
+        Log::info('Request payload:', $request->all());
+        Log::info('Request keys:', array_keys($request->all()));
 
-        $request->validate([
-            'name' => 'sometimes|string|max:255',
-            'description' => 'sometimes|string',
-            'thumbnail_url' => 'nullable|string',
-            'soundtrack_url' => 'nullable|string',
-        ]);
+        return DB::transaction(function () use ($request, $id) {
+            $escapeRoom = EscapeRoom::where('user_id', Auth::id())->findOrFail($id);
+            Log::info('Found escape room: ' . $escapeRoom->name);
+            Log::info('Current rooms count: ' . $escapeRoom->rooms->count());
 
-        $escapeRoom->update($request->only([
-            'name', 'description', 'thumbnail_url', 'soundtrack_url'
-        ]));
+            // If it's a simple metadata update
+            if ($this->isSimpleUpdate($request)) {
+                Log::info('Detected simple update (metadata only)');
 
-        return response()->json([
-            'message' => 'Escape room został pomyślnie zaktualizowany',
-            'escape_room' => $escapeRoom
-        ]);
+                $request->validate([
+                    'name' => 'sometimes|string|max:255',
+                    'description' => 'sometimes|string',
+                    'thumbnail_url' => 'nullable|string',
+                    'soundtrack_url' => 'nullable|string',
+                ]);
+
+                $escapeRoom->update($request->only([
+                    'name', 'description', 'thumbnail_url', 'soundtrack_url'
+                ]));
+
+                return response()->json([
+                    'message' => 'Escape room został pomyślnie zaktualizowany',
+                    'escape_room' => $this->escapeRoomsService->formatEscapeRoomResponse($escapeRoom)
+                ]);
+            }
+
+            Log::info('Detected complex update (with rooms data)');
+
+            // If it's a complex update with rooms, riddles, props
+            $updatedEscapeRoom = $this->escapeRoomsService->updateEscapeRoom($escapeRoom, $request->all());
+
+            return response()->json([
+                'message' => 'Escape room został pomyślnie zaktualizowany',
+                'escape_room' => $this->escapeRoomsService->formatEscapeRoomResponse($updatedEscapeRoom)
+            ]);
+        });
+    }
+
+    private function isSimpleUpdate(Request $request): bool
+    {
+        $simpleFields = ['name', 'description', 'thumbnail_url', 'soundtrack_url'];
+        $requestKeys = array_keys($request->all());
+
+        $isSimple = empty(array_diff($requestKeys, $simpleFields));
+        Log::info('Is simple update: ' . ($isSimple ? 'YES' : 'NO'));
+        Log::info('Request keys: ' . implode(', ', $requestKeys));
+        Log::info('Simple fields: ' . implode(', ', $simpleFields));
+
+        return $isSimple;
     }
 
     public function destroy($id)
