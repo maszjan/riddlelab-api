@@ -10,6 +10,7 @@ use App\Models\Riddle;
 use App\Models\Hint;
 use App\Enums\AssetType;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Http\UploadedFile;
 
@@ -193,6 +194,105 @@ class EscapeRoomService
         ];
     }
 
+    private function updateRooms(EscapeRoom $escapeRoom, array $roomsData): void
+    {
+        Log::info('=== UPDATING ROOMS ===');
+        Log::info('Escape Room ID: ' . $escapeRoom->id);
+        Log::info('Current rooms count: ' . $escapeRoom->rooms->count());
+        Log::info('New rooms data count: ' . count($roomsData));
+        Log::info('Rooms payload:', $roomsData);
+
+        // Log existing rooms before deletion
+        foreach ($escapeRoom->rooms as $index => $room) {
+            Log::info("Existing Room {$index}: ID={$room->id}, Assets={$room->roomAssets->count()}, Riddles={$room->roomRiddles->count()}");
+        }
+
+        // Delete existing rooms and their relationships
+        foreach ($escapeRoom->rooms as $room) {
+            Log::info("Deleting room ID: {$room->id}");
+
+            $assetsCount = $room->roomAssets()->count();
+            $riddlesCount = $room->roomRiddles()->count();
+
+            $room->roomAssets()->delete();
+            $room->roomRiddles()->delete();
+            $room->delete();
+
+            Log::info("Deleted room {$room->id}: {$assetsCount} assets, {$riddlesCount} riddles");
+        }
+
+        // Create new rooms
+        foreach ($roomsData as $index => $roomData) {
+            Log::info("Creating new room {$index}:");
+            Log::info("Room data:", $roomData);
+
+            $room = $this->createRoom($escapeRoom, $roomData);
+            Log::info("Created room ID: {$room->id}");
+
+            if (isset($roomData['riddles'])) {
+            $this->createRoomRiddles($room, $roomData['riddles']);
+        }
+
+            if (isset($roomData['props'])) {
+            $this->createRoomProps($room, $roomData['props']);
+        }
+
+            if (isset($roomData['door'])) {
+                Log::info("Adding door to room {$room->id}");
+                $this->createDoorAsset($room, $roomData['door'], $roomData['doorTextureAssetId'] ?? null);
+            }
+        }
+
+        Log::info('=== ROOMS UPDATE COMPLETED ===');
+    }
+
+    public function updateEscapeRoom(EscapeRoom $escapeRoom, array $data): EscapeRoom
+    {
+        Log::info('=== UPDATING ESCAPE ROOM ===');
+        Log::info('Escape Room ID: ' . $escapeRoom->id);
+        Log::info('Update payload:', $data);
+
+        $thumbnailPath = $escapeRoom->thumbnail_url;
+        $soundtrackPath = $escapeRoom->soundtrack_url;
+
+        if (isset($data['thumbnail']) && $data['thumbnail'] instanceof UploadedFile) {
+            $thumbnailPath = $this->uploadFile($data['thumbnail'], 'escape-rooms/thumbnails');
+            Log::info('New thumbnail uploaded: ' . $thumbnailPath);
+        }
+
+        if (isset($data['soundtrack']) && $data['soundtrack'] instanceof UploadedFile) {
+            $soundtrackPath = $this->uploadFile($data['soundtrack'], 'escape-rooms/soundtracks');
+            Log::info('New soundtrack uploaded: ' . $soundtrackPath);
+        }
+
+        $escapeRoom->update([
+            'name' => $data['name'] ?? $escapeRoom->name,
+            'description' => $data['description'] ?? $escapeRoom->description,
+            'thumbnail_url' => $thumbnailPath,
+            'soundtrack_url' => $soundtrackPath,
+        ]);
+
+        Log::info('Escape room metadata updated');
+
+        if (isset($data['rooms'])) {
+            Log::info('Rooms data provided, updating rooms...');
+            $this->updateRooms($escapeRoom, $data['rooms']);
+        } else {
+            Log::info('No rooms data provided, skipping room updates');
+        }
+
+        $result = $escapeRoom->load([
+            'rooms.roomAssets.asset',
+            'rooms.roomRiddles.riddle.hints',
+            'rooms.floorTexture'
+        ]);
+
+        Log::info('Final escape room has ' . $result->rooms->count() . ' rooms');
+        Log::info('=== ESCAPE ROOM UPDATE COMPLETED ===');
+
+        return $result;
+    }
+
     public function formatRoomResponse(Room $room): array
     {
         return [
@@ -313,3 +413,8 @@ class EscapeRoomService
 
         return null;
     }}
+
+
+
+
+
