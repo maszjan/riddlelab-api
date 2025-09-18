@@ -46,9 +46,9 @@ class PrepareDatabase extends Command
         $this->table(
             ['Rola', 'Email', 'Hasło'],
             [
-                ['Admin', 'admin@riddlelab.app', 'Password123@'],
-                ['Moderator', 'mod@riddlelab.app', 'Password123@'],
-                ['User', 'tester@riddlelab.app', 'Password123@']
+                ['Admin', 'admin@riddlelab.world', 'Password123@'],
+                ['Moderator', 'mod@riddlelab.world', 'Password123@'],
+                ['User', 'tester@riddlelab.world', 'Password123@']
             ]
         );
 
