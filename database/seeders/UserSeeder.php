@@ -14,7 +14,7 @@ class UserSeeder extends Seeder
         // Admin
         User::create([
             'name' => 'admin',
-            'email' => 'admin@riddlelab.app',
+            'email' => 'admin@riddlelab.world',
             'password' => Hash::make('Password123@'),
             'role' => UserRole::Admin->value,
             'player_configuration' => json_encode([
@@ -31,7 +31,7 @@ class UserSeeder extends Seeder
         // Moderator
         User::create([
             'name' => 'moderator',
-            'email' => 'mod@riddlelab.app',
+            'email' => 'mod@riddlelab.world',
             'password' => Hash::make('Password123@'),
             'role' => UserRole::Moderator->value,
             'player_configuration' => json_encode([
@@ -48,7 +48,7 @@ class UserSeeder extends Seeder
         // Regular User
         User::create([
             'name' => 'tester',
-            'email' => 'tester@riddlelab.app',
+            'email' => 'tester@riddlelab.world',
             'password' => Hash::make('Password123@'),
             'role' => UserRole::User->value,
             'player_configuration' => json_encode([
