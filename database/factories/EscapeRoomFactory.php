@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Database\Factories;
 
 use App\Models\EscapeRoom;
@@ -26,11 +25,11 @@ class EscapeRoomFactory extends Factory
         ];
 
         return [
-            'name' => $this->faker->words(2, true),
-            'description' => $this->faker->sentence(10),
+            'name' => '',
+            'description' => '',
             'thumbnail_url' => '/storage/escape-rooms/thumbnails/' . $this->faker->randomElement($thumbnails),
             'soundtrack_url' => '/storage/escape-rooms/soundtracks/' . $this->faker->randomElement($soundtracks),
-            'is_public' => $this->faker->boolean(70), 
+            'is_public' => $this->faker->boolean(70),
             'user_id' => User::factory(),
         ];
     }

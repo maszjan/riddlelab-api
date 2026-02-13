@@ -83,7 +83,6 @@ class AssetController extends Controller
             'name' => $validatedData['name'],
             'type' => $validatedData['type'],
             'image_url' => $path,
-            'has_collider' => $validatedData['has_collider'] ?? false,
             'owner_id' => $user->id,
         ]);
 
@@ -100,8 +99,6 @@ class AssetController extends Controller
         if (!$asset->is_public && $asset->owner_id !== auth()->id()) {
             return response()->json(['message' => 'Unauthorized access'], 403);
         }
-
-        // TODO  after handling some saving rooms/e-rooms etc. bring protecting before removing assets used in saved maps
 
         $asset->delete();
 

@@ -1,6 +1,5 @@
 <?php
 
-
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -13,10 +12,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('escape_room_id')->constrained('escape_rooms');
             $table->foreignId('user_id')->constrained('users');
-            $table->integer('completion_time'); // in seconds
-            $table->integer('hints_used')->default(0);
-            $table->integer('attempt_count')->default(1);
-            $table->integer('position');
+            $table->unsignedInteger('completion_time');
+            $table->unsignedInteger('hints_used')->default(0);
+            $table->unsignedInteger('attempt_count')->default(1);
+            $table->unsignedInteger('position');
             $table->timestamps();
         });
     }

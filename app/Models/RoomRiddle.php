@@ -15,6 +15,7 @@ class RoomRiddle extends Model
         'riddle_id',
         'position_row',
         'position_col',
+        'max_attempts',
     ];
 
     public function room(): BelongsTo

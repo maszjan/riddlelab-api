@@ -16,7 +16,6 @@ class AssetSeeder extends Seeder
                 'name' => "Door Texture {$i}",
                 'type' => AssetType::Door->value,
                 'image_url' => "textures/door/door{$i}.png",
-                'has_collider' => true,
                 'is_public' => true,
             ]);
         }
@@ -27,7 +26,6 @@ class AssetSeeder extends Seeder
                 'name' => "Floor Texture {$i}",
                 'type' => AssetType::Floor->value,
                 'image_url' => "textures/floor/floor{$i}.png",
-                'has_collider' => false,
                 'is_public' => true,
             ]);
         }
@@ -38,7 +36,6 @@ class AssetSeeder extends Seeder
                 'name' => "Prop {$i}",
                 'type' => AssetType::Prop->value,
                 'image_url' => "textures/props/prop-{$i}.png",
-                'has_collider' => true,
                 'is_public' => true,
             ]);
         }
@@ -49,7 +46,6 @@ class AssetSeeder extends Seeder
                 'name' => "Riddle {$i}",
                 'type' => AssetType::Riddle->value,
                 'image_url' => "textures/riddles/riddle-{$i}.png",
-                'has_collider' => true,
                 'is_public' => true,
             ]);
         }

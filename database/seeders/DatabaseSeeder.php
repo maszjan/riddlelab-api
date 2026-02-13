@@ -16,7 +16,8 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,          
             AssetSeeder::class,          
             RiddleSeeder::class,        
-            EscapeRoomSeeder::class,     
+            EscapeRoomSeeder::class,
+            MiniGameSeeder::class,
         ]);
     }
 }

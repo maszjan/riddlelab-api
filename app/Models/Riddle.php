@@ -18,6 +18,7 @@ class Riddle extends Model
         'type',
         'question',
         'answer',
+        'points',
     ];
 
     protected $casts = [

@@ -19,7 +19,7 @@ class EscapeRoomService
     public function createEscapeRoom(array $data): EscapeRoom
     {
 
-        $thumbnailPath = null;
+    $thumbnailPath = null;
         $soundtrackPath = null;
 
         if (isset($data['thumbnail']) && $data['thumbnail'] instanceof UploadedFile) {
@@ -61,13 +61,11 @@ class EscapeRoomService
         ]);
     }
 
+
     /**
      * Upload file to storage and return the path
      */
-    /**
-     * Upload file to storage and return the path
-     */
-    private function uploadFile(UploadedFile $file, string $directory): string
+   public  function uploadFile(UploadedFile $file, string $directory): string
     {
         $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
         $path = $file->storeAs($directory, $filename, 'public');
@@ -196,20 +194,12 @@ class EscapeRoomService
 
     private function updateRooms(EscapeRoom $escapeRoom, array $roomsData): void
     {
-        Log::info('=== UPDATING ROOMS ===');
-        Log::info('Escape Room ID: ' . $escapeRoom->id);
-        Log::info('Current rooms count: ' . $escapeRoom->rooms->count());
-        Log::info('New rooms data count: ' . count($roomsData));
-        Log::info('Rooms payload:', $roomsData);
 
-        // Log existing rooms before deletion
         foreach ($escapeRoom->rooms as $index => $room) {
             Log::info("Existing Room {$index}: ID={$room->id}, Assets={$room->roomAssets->count()}, Riddles={$room->roomRiddles->count()}");
         }
 
-        // Delete existing rooms and their relationships
         foreach ($escapeRoom->rooms as $room) {
-            Log::info("Deleting room ID: {$room->id}");
 
             $assetsCount = $room->roomAssets()->count();
             $riddlesCount = $room->roomRiddles()->count();
@@ -218,16 +208,12 @@ class EscapeRoomService
             $room->roomRiddles()->delete();
             $room->delete();
 
-            Log::info("Deleted room {$room->id}: {$assetsCount} assets, {$riddlesCount} riddles");
         }
 
-        // Create new rooms
+
         foreach ($roomsData as $index => $roomData) {
-            Log::info("Creating new room {$index}:");
-            Log::info("Room data:", $roomData);
 
             $room = $this->createRoom($escapeRoom, $roomData);
-            Log::info("Created room ID: {$room->id}");
 
             if (isset($roomData['riddles'])) {
             $this->createRoomRiddles($room, $roomData['riddles']);
@@ -243,26 +229,20 @@ class EscapeRoomService
             }
         }
 
-        Log::info('=== ROOMS UPDATE COMPLETED ===');
     }
 
     public function updateEscapeRoom(EscapeRoom $escapeRoom, array $data): EscapeRoom
     {
-        Log::info('=== UPDATING ESCAPE ROOM ===');
-        Log::info('Escape Room ID: ' . $escapeRoom->id);
-        Log::info('Update payload:', $data);
 
         $thumbnailPath = $escapeRoom->thumbnail_url;
         $soundtrackPath = $escapeRoom->soundtrack_url;
 
         if (isset($data['thumbnail']) && $data['thumbnail'] instanceof UploadedFile) {
             $thumbnailPath = $this->uploadFile($data['thumbnail'], 'escape-rooms/thumbnails');
-            Log::info('New thumbnail uploaded: ' . $thumbnailPath);
         }
 
         if (isset($data['soundtrack']) && $data['soundtrack'] instanceof UploadedFile) {
             $soundtrackPath = $this->uploadFile($data['soundtrack'], 'escape-rooms/soundtracks');
-            Log::info('New soundtrack uploaded: ' . $soundtrackPath);
         }
 
         $escapeRoom->update([
@@ -272,10 +252,8 @@ class EscapeRoomService
             'soundtrack_url' => $soundtrackPath,
         ]);
 
-        Log::info('Escape room metadata updated');
 
         if (isset($data['rooms'])) {
-            Log::info('Rooms data provided, updating rooms...');
             $this->updateRooms($escapeRoom, $data['rooms']);
         } else {
             Log::info('No rooms data provided, skipping room updates');
@@ -286,10 +264,6 @@ class EscapeRoomService
             'rooms.roomRiddles.riddle.hints',
             'rooms.floorTexture'
         ]);
-
-        Log::info('Final escape room has ' . $result->rooms->count() . ' rooms');
-        Log::info('=== ESCAPE ROOM UPDATE COMPLETED ===');
-
         return $result;
     }
 
@@ -333,7 +307,6 @@ class EscapeRoomService
         }
 
         return $room->roomRiddles->map(function ($roomRiddle) use ($room) {
-            // Find the asset for this riddle at the same position
             $riddleAsset = $room->roomAssets
                 ->where('position_row', $roomRiddle->position_row)
                 ->where('position_col', $roomRiddle->position_col)
@@ -380,19 +353,16 @@ class EscapeRoomService
                         'col' => $roomAsset->position_col,
                     ],
                     'rotation' => $roomAsset->rotation,
-                    'hasCollider' => $roomAsset->asset->has_collider,
                 ];
             })->values()->toArray();
     }
 
     public function getDoorData(Room $room): ?array
     {
-        // First check if door data is stored in the room model
         if ($room->door_position) {
             return $room->door_position;
         }
 
-        // Fallback to checking room assets for door type
         if (!$room->roomAssets) {
             return null;
         }
