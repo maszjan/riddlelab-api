@@ -41,6 +41,10 @@ class PrepareDatabase extends Command
         $this->info('Tworzenie linku symbolicznego do katalogu storage...');
         $this->call('storage:link');
 
+        $this->info('Generowanie dokumentacji...');
+        $this->call('scribe:generate');
+
+
         $this->info('Baza danych została pomyślnie przygotowana!');
         $this->info('Domyślni użytkownicy:');
         $this->table(
