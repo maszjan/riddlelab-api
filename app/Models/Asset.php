@@ -18,13 +18,12 @@ class Asset extends Model
         'name',
         'type',
         'image_url',
-        'has_collider',
         'is_public',
     ];
 
+
     protected $casts = [
         'type' => AssetType::class,
-        'has_collider' => 'boolean',
         'is_public' => 'boolean',
     ];
 

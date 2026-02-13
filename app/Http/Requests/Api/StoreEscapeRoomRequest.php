@@ -32,11 +32,11 @@ class StoreEscapeRoomRequest extends FormRequest
             'rooms.*.walls' => 'required|array',
             'rooms.*.wallColor' => 'required|string',
             'rooms.*.wallThickness' => 'required|numeric|min:1',
-            'rooms.*.floorTexture' => 'nullable|string',
-            'rooms.*.floorTextureAssetId' => 'nullable|integer|exists:assets,id',
-            'rooms.*.doorTexture' => 'nullable|string',
-            'rooms.*.doorTextureAssetId' => 'nullable|integer|exists:assets,id',
-            'rooms.*.floorAccepted' => 'nullable|boolean',
+            'rooms.*.floorTexture' => 'required|string',
+            'rooms.*.floorTextureAssetId' => 'required|integer|exists:assets,id',
+            'rooms.*.doorTexture' => 'required|string',
+            'rooms.*.doorTextureAssetId' => 'required|integer|exists:assets,id',
+            'rooms.*.floorAccepted' => 'required|boolean',
 
             // Starting point validation
             'rooms.*.startingPoint' => 'required|array',
@@ -55,7 +55,7 @@ class StoreEscapeRoomRequest extends FormRequest
             'rooms.*.riddles.*.position' => 'required|array',
             'rooms.*.riddles.*.position.row' => 'required|integer',
             'rooms.*.riddles.*.position.col' => 'required|integer',
-            'rooms.*.riddles.*.type' => 'required|string|in:knowledge,math,logic,pattern,word_puzzle',
+            'rooms.*.riddles.*.type' => 'required|string|in:knowledge,math,language,cypher,puzzleGame',
             'rooms.*.riddles.*.data' => 'required|array',
             'rooms.*.riddles.*.data.title' => 'required|string|max:255',
             'rooms.*.riddles.*.data.question' => 'required|string',
@@ -76,7 +76,6 @@ class StoreEscapeRoomRequest extends FormRequest
             'rooms.*.props.*.position.row' => 'required|integer',
             'rooms.*.props.*.position.col' => 'required|integer',
             'rooms.*.props.*.rotation' => 'nullable|integer',
-            'rooms.*.props.*.hasCollider' => 'nullable|boolean',
         ];
     }
 

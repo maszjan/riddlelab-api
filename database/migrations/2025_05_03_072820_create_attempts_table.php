@@ -15,8 +15,8 @@ return new class extends Migration
             $table->timestamp('start_time');
             $table->timestamp('end_time')->nullable();
             $table->boolean('completed')->default(false);
-            $table->integer('time_spent')->nullable();
-            $table->integer('hints_used')->default(0);
+            $table->unsignedInteger('time_spent')->default(0);
+            $table->unsignedInteger('hints_used')->default(0);
             $table->timestamps();
         });
     }

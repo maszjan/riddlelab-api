@@ -23,25 +23,25 @@ class RiddleSeeder extends Seeder
             ],
             [
                 'name' => 'Logiczna Łamigłówka',
-                'type' => RiddleType::Knowledge, // Changed from Logic to Knowledge
+                'type' => RiddleType::Knowledge,
                 'question' => 'Co ma 4 nogi rano, 2 w południe i 3 wieczorem?',
                 'answer' => 'człowiek',
             ],
             [
                 'name' => 'Sekretny Kod',
-                'type' => RiddleType::Cypher, // Changed from Code to Cypher
+                'type' => RiddleType::Cypher,
                 'question' => 'Rozszyfruj: 20-8-5 3-15-4-5 9-19: A=1, B=2, C=3...',
                 'answer' => 'THE CODE IS',
             ],
             [
                 'name' => 'Słowna Zagadka',
-                'type' => RiddleType::Language, // Changed from Word to Language
+                'type' => RiddleType::Language,
                 'question' => 'Jestem pełen dziur, ale mogę trzymać wodę. Kim jestem?',
                 'answer' => 'gąbka',
             ],
             [
                 'name' => 'Kolorowa Zagadka',
-                'type' => RiddleType::Knowledge, // Changed from Logic to Knowledge
+                'type' => RiddleType::Knowledge,
                 'question' => 'Jakiego koloru jest biały koń Napoleona?',
                 'answer' => 'biały',
             ],
@@ -53,13 +53,13 @@ class RiddleSeeder extends Seeder
             ],
             [
                 'name' => 'Starożytna Mądrość',
-                'type' => RiddleType::Knowledge, // Changed from Logic to Knowledge
+                'type' => RiddleType::Knowledge,
                 'question' => 'Co jest cięższe: kilogram pierza czy kilogram ołowiu?',
                 'answer' => 'tyle samo',
             ],
             [
                 'name' => 'Kosmiczna Zagadka',
-                'type' => RiddleType::Knowledge, // Changed from Code to Knowledge
+                'type' => RiddleType::Knowledge,
                 'question' => 'Ile planet jest w naszym układzie słonecznym?',
                 'answer' => '8',
             ],

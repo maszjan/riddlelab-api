@@ -18,7 +18,6 @@ return new class extends Migration
             $table->string('name');
             $table->string('type');
             $table->string('image_url');
-            $table->boolean('has_collider');
             $table->boolean('is_public')->default(false);
             $table->timestamps();
         });

@@ -1,4 +1,3 @@
-// create_escape_rooms_table.php
 <?php
 
 use Illuminate\Database\Migrations\Migration;

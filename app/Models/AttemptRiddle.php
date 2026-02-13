@@ -17,11 +17,17 @@ class AttemptRiddle extends Model
         'time_to_solve',
         'attempt_number',
         'max_attempts',
+        'mini_game_id'
     ];
 
     protected $casts = [
         'solved' => 'boolean',
     ];
+
+    public function miniGame()
+    {
+        return $this->belongsTo(MiniGame::class);
+    }
 
     public function attempt(): BelongsTo
     {
