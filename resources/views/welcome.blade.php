@@ -96,7 +96,6 @@
 </head>
 <body>
 <div class="container">
-    <img src="/storage/meta/riddlelab-logo.png" alt="RiddleLab" class="logo">
-</div>
+    <img src="/logo.png" alt="RiddleLab" class="logo"></div>
 </body>
 </html>

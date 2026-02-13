@@ -1,0 +1,108 @@
+services:
+  laravel.test:
+    build:
+      context: ./vendor/laravel/sail/runtimes/8.5
+      dockerfile: Dockerfile
+      args:
+        WWWGROUP: "${WWWGROUP}"
+    image: sail-8.5/app
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "${APP_PORT:-8080}:80"
+    environment:
+      WWWUSER: "${WWWUSER}"
+      LARAVEL_SAIL: 1
+      XDEBUG_MODE: "${SAIL_XDEBUG_MODE:-off}"
+      XDEBUG_CONFIG: "${SAIL_XDEBUG_CONFIG:-client_host=host.docker.internal}"
+      IGNITION_LOCAL_SITES_PATH: "${PWD}"
+    volumes:
+      - ".:/var/www/html"
+    networks:
+      - riddlelab
+    depends_on:
+      - pgsql
+      - redis
+
+  pgsql:
+    image: "postgres:18-alpine"
+    ports:
+      - "${FORWARD_DB_PORT:-5432}:5432"
+    environment:
+      PGPASSWORD: "${DB_PASSWORD:-secret}"
+      POSTGRES_DB: "${DB_DATABASE}"
+      POSTGRES_USER: "${DB_USERNAME}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD:-secret}"
+    volumes:
+      - "riddlelab-pgsql:/var/lib/postgresql"
+      - "./vendor/laravel/sail/database/pgsql/create-testing-database.sql:/docker-entrypoint-initdb.d/10-create-testing-database.sql"
+    networks:
+      - riddlelab
+    healthcheck:
+      test:
+        - CMD
+        - pg_isready
+        - "-q"
+        - "-d"
+        - "${DB_DATABASE}"
+        - "-U"
+        - "${DB_USERNAME}"
+      retries: 3
+      timeout: 5s
+
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "${FORWARD_REDIS_PORT:-6379}:6379"
+    volumes:
+      - "riddlelab-redis:/data"
+    networks:
+      - riddlelab
+    healthcheck:
+      test:
+        - CMD
+        - redis-cli
+        - ping
+      retries: 3
+      timeout: 5s
+
+  queue:
+    build:
+      context: ./vendor/laravel/sail/runtimes/8.5
+      dockerfile: Dockerfile
+      args:
+        WWWGROUP: "${WWWGROUP}"
+    image: sail-8.5/app
+    command: php artisan queue:work
+    depends_on:
+      - laravel.test
+      - pgsql
+      - redis
+    volumes:
+      - ".:/var/www/html"
+    networks:
+      - riddlelab
+    environment:
+      WWWUSER: "${WWWUSER}"
+      LARAVEL_SAIL: 1
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: .Dockerfile
+    ports:
+      - "5200:5173"
+    env_file:
+      - ../frontend/.env
+    networks:
+      - riddlelab
+
+networks:
+  riddlelab:
+    driver: bridge
+
+volumes:
+  riddlelab-pgsql:
+    driver: local
+  riddlelab-redis:
+    driver: local
